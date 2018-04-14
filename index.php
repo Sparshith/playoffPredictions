@@ -28,6 +28,7 @@
 <body>
 <div id="chat"></div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script  type="application/javascript"  src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
 <script src="component/Bubbles.js"></script>
 <script type="text/javascript">
 var chatWindow = new Bubbles(document.getElementById("chat"), "chatWindow", {
@@ -62,8 +63,48 @@ var convo = {
   signupPassword: {
     says: ["Enter a password "],
     textInputAction: "storePassword",
+  },
+  upcomingGames: {
+    says: ["Predict the following upcoming games"],
+    reply: [
+      {
+        question: "San Antonio vs Golden State",
+        option: "SASGSW",
+        answer: "predictionSelectionFunction"
+      },
+      {
+        question: "Washington vs Torongo",
+        option: "WASTOR",
+        answer: "predictionSelectionFunction"
+      },
+      {
+        question: "Miami vs Philadelphia",
+        option: "MIAPHI",
+        answer: "predictionSelectionFunction"
+      },
+      {
+        question: "New Orleans vs Portland",
+        option: "NEWPOR",
+        answer: "predictionSelectionFunction"
+      },
+      {
+        question: "Milwaukee vs Boston",
+        option: "MILBOS",
+        answer: "predictionSelectionFunction"
+      }
+    ]
+  },
+  predictionSelection: {
+    says: ["Who do you think will win?"]
+  },
+  confidencePicker: {
+    says: ["How confident are you of this prediction?"]
   }
 }
+
+/**
+* Data functions
+**/
 
 storePassword = function(password) {
   console.log("username", convo.userVariables.username);
@@ -72,6 +113,7 @@ storePassword = function(password) {
   /**
   * Make API call to register user here
   **/
+  document.cookie = "userHash=" + password;
 }
 
 storeUserName = function(username) {
@@ -86,6 +128,14 @@ signupFunction = function() {
   showInputBox('Enter username here');
 }
 
+predictionSelectionFunction = function() {
+  console.log(convo);
+  chatWindow.talk(convo, "predictionSelection");
+}
+
+/**
+* UI functions
+**/
 showInputBox = function(placeholderText){
   setTimeout(function() {
     var textField = $('.bubble-container .input-wrap textarea');
@@ -98,8 +148,12 @@ hideInputBox = function() {
   textField.fadeOut().attr("placeholder", "").val("").focus().blur();
 }
 
-// pass JSON to your function and you're done!
-chatWindow.talk(convo, "gambit")
+if(Cookies.get("userHash")) {
+  chatWindow.talk(convo, "upcomingGames");
+} else {
+  chatWindow.talk(convo, "gambit")
+}
+
 </script>
 <!--   <?php
     foreach (glob("component/js/*.js") as $js) {

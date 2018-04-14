@@ -140,6 +140,7 @@ function Bubbles(container, self, options) {
       turn.reply.reverse()
       for (var i = 0; i < turn.reply.length; i++) {
         ;(function(el, count) {
+          console.log(el);
           questionsHTML +=
             '<span class="bubble-button" style="animation-delay: ' +
             animationTime / 2 * count +
@@ -149,6 +150,8 @@ function Bubbles(container, self, options) {
             el.answer +
             "', '" +
             el.question +
+            "', '" +
+            el.option +
             "');this.classList.add('bubble-pick')\">" +
             el.question +
             "</span>"
@@ -163,7 +166,7 @@ function Bubbles(container, self, options) {
     })
   }
   // navigate "answers"
-  this.answer = function(key, content) {
+  this.answer = function(key, content, option) {
     var func = function(key) {
       typeof window[key] === "function" ? window[key]() : false
     }
