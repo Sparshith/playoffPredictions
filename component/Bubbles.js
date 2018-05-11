@@ -140,7 +140,6 @@ function Bubbles(container, self, options) {
       turn.reply.reverse()
       for (var i = 0; i < turn.reply.length; i++) {
         ;(function(el, count) {
-          console.log(el);
           questionsHTML +=
             '<span class="bubble-button" style="animation-delay: ' +
             animationTime / 2 * count +
@@ -168,11 +167,10 @@ function Bubbles(container, self, options) {
   // navigate "answers"
   this.answer = function(key, content, option) {
     var func = function(key) {
-      typeof window[key] === "function" ? window[key]() : false
+      typeof window[key] === "function" ? window[key](option) : false
     }
-    _convo[key] !== undefined
-      ? (this.reply(_convo[key]), (standingAnswer = key))
-      : func(key)
+
+    _convo[key] !== undefined ? (this.reply(_convo[key]), (standingAnswer = key)) : func(key)
 
     // add re-generated user picks to the history stack
     if (_convo[key] !== undefined && content !== undefined) {

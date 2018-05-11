@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Playoff Korv3r</title>
+  <title>Ola3po | NBA predictions</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Dosis:400,700,800,600,300">
   <?php
@@ -44,32 +44,39 @@ var chatWindow = new Bubbles(document.getElementById("chat"), "chatWindow", {
 
 var convo = {
   gambit: {
-    says: ["Hi", "Are you a new user?"],
+    says: ["Hi, I am Ola3po, I will be helping you with predicting games."],
     reply: [
       {
-        question: "Yes",
+        question: "Sign me up",
         answer: "signupFunction"
       },
       {
-        question: "No",
+        question: "Login",
         answer: "Login"
+      },
+      {
+        question: "How does this work?",
+        answer: "intro"
       }
     ]
   },
   signupUsername: {
     says: ["Enter a username"],
-    textInputAction: "storeUserName",
+    textInputAction: "checkUserName",
   },
+  signupUsernameRedo: {
+    says: ["Sorry, that username is already taken. Please enter another username!"],
+    textInputAction: "checkUserName",  },
   signupPassword: {
     says: ["Enter a password "],
-    textInputAction: "storePassword",
+    textInputAction: "createUser",
   },
   upcomingGames: {
     says: ["Predict the following upcoming games"],
     reply: [
       {
         question: "San Antonio vs Golden State",
-        option: "SASGSW",
+        followUpReply: "SASGSW",
         answer: "predictionSelectionFunction"
       },
       {
@@ -102,34 +109,12 @@ var convo = {
   }
 }
 
-/**
-* Data functions
-**/
-
-storePassword = function(password) {
-  console.log("username", convo.userVariables.username);
-  console.log("password", password);
-  hideInputBox();
-  /**
-  * Make API call to register user here
-  **/
-  document.cookie = "userHash=" + password;
-}
-
-storeUserName = function(username) {
-  convo.userVariables = {};
-  convo.userVariables.username = username;
-  chatWindow.talk(convo, "signupPassword");
-  showInputBox('Enter password here');
-}
-
 signupFunction = function() {
   chatWindow.talk(convo, "signupUsername")
   showInputBox('Enter username here');
 }
 
-predictionSelectionFunction = function() {
-  console.log(convo);
+predictionSelectionFunction = function(option) {
   chatWindow.talk(convo, "predictionSelection");
 }
 
@@ -153,8 +138,55 @@ if(Cookies.get("userHash")) {
 } else {
   chatWindow.talk(convo, "gambit")
 }
+/**
+* Helper functions to make ajax calls
+**/
+
+checkUserName = function(username) {
+  var data = {
+    username: username
+  };
+
+  $.ajax({
+    url: 'php/checkUserName.php',
+    type: 'POST',
+    dataType: 'json',
+    data: data,
+    success: function(response) {
+      if(response.status == 'new') {
+        convo.userVariables = {};
+        convo.userVariables.username = username;
+        chatWindow.talk(convo, "signupPassword");
+        showInputBox('Enter password here');
+      } else if(response.status == 'already_exists') {
+        chatWindow.talk(convo, "signupUsernameRedo");
+      }
+    }
+  });
+}
+
+createUser = function(password) {
+  var data = {
+    username: convo.userVariables.username,
+    password: password
+  }
+
+  $.ajax({
+    url: 'php/createUser.php',
+    type: 'POST',
+    dataType: 'json',
+    data: data,
+    success: function(response) {
+      hideInputBox();
+      var userHash = response.userHash;
+      document.cookie = "userHash=" + userHash;
+    }
+  });
+}
+
 
 </script>
+<script src="javascript/custom.js"></script>
 <!--   <?php
     foreach (glob("component/js/*.js") as $js) {
       echo "<script type='text/javascript' src='$js'></script>\n";
