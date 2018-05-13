@@ -60,6 +60,22 @@ var convo = {
       }
     ]
   },
+  intro: {
+    says: ["The scoring system is based on the <i>Brier score</i> (<a href=\"https://en.wikipedia.org/wiki/Brier_score\"> Wiki link</a>). <br> <br> So you need to pick one team to win in each matchup, as well as the confidence that you have on your pick winning the game. <br> <br> So, if the matchup is Toronto Raptors vs Cleveland Cavaliers, and you feel like Toronto will win with a probability of 99%, your prediction will be Toronto Raptors/99. If they do win, then your Brier score will be (1- 0.99)^2 . If they lose, it will be (1-0.01)^2. <br> <br> The lower your Brier score, the better your predictions are. <br> <b>Are you ready to play?</b>"],
+    reply: [
+      {
+        question: "Yes 😄",
+        answer: "gambit"
+      },
+      {
+        question: "Nope 😔",
+        answer: "ByeBye"
+      }
+    ]
+  },
+  ByeBye: {
+    says: ['Alright, no worries, thank you for participating! Wakanda forever.']
+  },
   signupUsername: {
     says: ["Enter a username"],
     textInputAction: "checkUserName",
@@ -98,7 +114,8 @@ var convo = {
     says: ["Your prediction has been successfully logged. You can check your position on the leaderboard post the game!"],
     reply: [
       {
-        question: "ByeBye!"
+        question: "ByeBye!",
+        answer: "ByeBye"
       },
       {
         question: "Continue predicting",
