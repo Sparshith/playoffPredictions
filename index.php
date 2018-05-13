@@ -66,46 +66,37 @@ var convo = {
   },
   signupUsernameRedo: {
     says: ["Sorry, that username is already taken. Please enter another username!"],
-    textInputAction: "checkUserName",  },
+    textInputAction: "checkUserName",
+  },
   signupPassword: {
     says: ["Enter a password "],
     textInputAction: "createUser",
   },
-  upcomingGames: {
-    says: ["Predict the following upcoming games"],
+  /**
+  * More properties are added in predictionSelectionFunction.
+  **/
+  predictionSelection: {
+    says: ["Who do you think will win?"],
+    answer: "confidencePicker"
+  },
+  confidencePicker: {
+    says: ["How confident are you of this prediction?"],
+    textInputAction: "logPrediction"
+  },
+  thankYou: {
+    says: ["Your prediction has been successfully logged. You can check your position on the leaderboard post the game!"],
     reply: [
       {
-        question: "San Antonio vs Golden State",
-        followUpReply: "SASGSW",
-        answer: "predictionSelectionFunction"
+        question: "ByeBye!"
       },
       {
-        question: "Washington vs Torongo",
-        option: "WASTOR",
-        answer: "predictionSelectionFunction"
-      },
-      {
-        question: "Miami vs Philadelphia",
-        option: "MIAPHI",
-        answer: "predictionSelectionFunction"
-      },
-      {
-        question: "New Orleans vs Portland",
-        option: "NEWPOR",
-        answer: "predictionSelectionFunction"
-      },
-      {
-        question: "Milwaukee vs Boston",
-        option: "MILBOS",
-        answer: "predictionSelectionFunction"
+        question: "Continue predicting",
+        answer: "fetchUpcomingGamesFunction"
       }
     ]
   },
-  predictionSelection: {
-    says: ["Who do you think will win?"]
-  },
-  confidencePicker: {
-    says: ["How confident are you of this prediction?"]
+  stall: {
+    says: ["I'm just booting up the systems, hold on tight!"]
   }
 }
 
@@ -115,7 +106,20 @@ signupFunction = function() {
 }
 
 predictionSelectionFunction = function(option) {
+  var option = JSON.parse(decodeURIComponent(option));
+  convo.predictionVariables = {};
+  convo.predictionVariables.gameId = option.gameId;
+  option.matchup.forEach(function(game){
+    game.answer = 'addConfidenceScore';
+  })
+  convo.predictionSelection.reply = option.matchup;
   chatWindow.talk(convo, "predictionSelection");
+}
+
+addConfidenceScore = function(option) {
+  convo.predictionVariables.teamId = option;
+  chatWindow.talk(convo, "confidencePicker");
+  showInputBox('Enter a whole number between 50 and 100 here');
 }
 
 /**
@@ -133,14 +137,45 @@ hideInputBox = function() {
   textField.fadeOut().attr("placeholder", "").val("").focus().blur();
 }
 
-if(Cookies.get("userHash")) {
-  chatWindow.talk(convo, "upcomingGames");
-} else {
-  chatWindow.talk(convo, "gambit")
+//smh
+fetchUpcomingGamesFunction = function() {
+  fetchUpcomingGames();
 }
+
+
 /**
 * Helper functions to make ajax calls
 **/
+
+fetchUpcomingGames = function() {
+  $.ajax({
+    url: 'php/fetchUpcomingGames.php',
+    type: 'POST',
+    dataType: 'json',
+    data: {},
+    success: function(response) {
+      if(response.data) {
+        convo.upcomingGames = {};
+        convo.upcomingGames.says = ["Predict the following upcoming games"];
+        convo.upcomingGames.reply = [];
+        response.data.forEach(function(game){
+          game.convGameFormat.answer =  'predictionSelectionFunction';
+          game.convGameFormat.option = encodeURIComponent(JSON.stringify(game.convGameFormat.option));
+          convo.upcomingGames.reply.push(game.convGameFormat);
+        });
+        chatWindow.talk(convo, "upcomingGames");
+      }
+    }
+  })
+}
+
+
+if(Cookies.get("userHash")) {
+  // chatWindow.talk(convo, 'stall');
+  fetchUpcomingGames();
+} else {
+  chatWindow.talk(convo, "gambit")
+}
 
 checkUserName = function(username) {
   var data = {
@@ -180,13 +215,35 @@ createUser = function(password) {
       hideInputBox();
       var userHash = response.userHash;
       document.cookie = "userHash=" + userHash;
+      fetchUpcomingGames();
     }
   });
 }
 
+logPrediction = function(confidenceScore) {
+  var data = {
+    confidence: confidenceScore,
+    teamId: convo.predictionVariables.teamId,
+    gameId: convo.predictionVariables.gameId,
+    userHash: Cookies.get("userHash")
+  };
+
+  $.ajax({
+    url: 'php/logPrediction.php',
+    type: 'POST',
+    dataType: 'json',
+    data: data,
+    success: function(response) {
+      console.log(response);
+      hideInputBox();
+      chatWindow.talk(convo, "thankYou");
+    }
+  });
+
+}
+
 
 </script>
-<script src="javascript/custom.js"></script>
 <!--   <?php
     foreach (glob("component/js/*.js") as $js) {
       echo "<script type='text/javascript' src='$js'></script>\n";

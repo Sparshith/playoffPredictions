@@ -169,7 +169,6 @@ function Bubbles(container, self, options) {
     var func = function(key) {
       typeof window[key] === "function" ? window[key](option) : false
     }
-
     _convo[key] !== undefined ? (this.reply(_convo[key]), (standingAnswer = key)) : func(key)
 
     // add re-generated user picks to the history stack
