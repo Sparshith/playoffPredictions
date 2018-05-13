@@ -216,7 +216,7 @@ checkUserName = function(username) {
   };
 
   $.ajax({
-    url: 'php/checkUserName.php',
+    url: 'php/checkUsername.php',
     type: 'POST',
     dataType: 'json',
     data: data,
