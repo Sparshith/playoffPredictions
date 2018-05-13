@@ -52,7 +52,7 @@ var convo = {
       },
       {
         question: "Login",
-        answer: "Login"
+        answer: "LoginFunction"
       },
       {
         question: "How does this work?",
@@ -71,6 +71,17 @@ var convo = {
   signupPassword: {
     says: ["Enter a password "],
     textInputAction: "createUser",
+  },
+  loginUsername: {
+    says: ["Enter a username"],
+    textInputAction: "storeUserName",
+  },
+  loginUsernameRedo: {
+    says: ["Sorry, this account was not found! Please sign up if you are a new user"],
+  },
+  loginPassword: {
+    says: ["Enter a password "],
+    textInputAction: "loginUser",
   },
   /**
   * More properties are added in predictionSelectionFunction.
@@ -102,6 +113,11 @@ var convo = {
 
 signupFunction = function() {
   chatWindow.talk(convo, "signupUsername")
+  showInputBox('Enter username here');
+}
+
+LoginFunction = function() {
+  chatWindow.talk(convo, "loginUsername")
   showInputBox('Enter username here');
 }
 
@@ -200,6 +216,13 @@ checkUserName = function(username) {
   });
 }
 
+storeUserName = function(username) {
+  convo.userVariables = {};
+  convo.userVariables.username = username;
+  chatWindow.talk(convo, "loginPassword");
+  showInputBox('Enter password here');
+}
+
 createUser = function(password) {
   var data = {
     username: convo.userVariables.username,
@@ -220,6 +243,34 @@ createUser = function(password) {
   });
 }
 
+loginUser = function(password) {
+  var data = {
+    username: convo.userVariables.username,
+    password: password
+  }
+
+  $.ajax({
+    url: 'php/loginUser.php',
+    type: 'POST',
+    dataType: 'json',
+    data: data,
+    success: function(response) {
+      if(response.status === 'found') {
+        hideInputBox();
+        var userHash = response.userHash;
+        document.cookie = "userHash=" + userHash;
+        convo.welcomeBack = {};
+        convo.welcomeBack.says = ['Welcome back '+ convo.userVariables.username];
+        chatWindow.talk(convo, "welcomeBack");
+        setTimeout(function(){ fetchUpcomingGames(); }, 1000);
+      } else {
+        chatWindow.talk(convo, "loginUsernameRedo");
+        chatWindow.talk(convo, "gambit");
+      }
+    }
+  });
+}
+
 logPrediction = function(confidenceScore) {
   var data = {
     confidence: confidenceScore,
@@ -234,12 +285,10 @@ logPrediction = function(confidenceScore) {
     dataType: 'json',
     data: data,
     success: function(response) {
-      console.log(response);
       hideInputBox();
       chatWindow.talk(convo, "thankYou");
     }
   });
-
 }
 
 
